@@ -22,7 +22,7 @@
 | 风险等级 | 数量 | 状态 |
 | :--- | :--- | :--- |
 |  **Critical (致命)** | 3 | 待处理 |
-|  **High (高危)** | 4 | 待处理 |
+|  **High (高危)** | 5 | 待处理 |
 |  **Medium (中危)** | 2 | 待处理 |
 |  **Low/Info (低危)** | 5+ | 待处理 |
 
@@ -53,6 +53,15 @@
 - **描述**：合约监控用户的买入成本，若卖出时有盈利，将对增值部分征收高达 28% 的“利润税”。
 - **风险**：极大地损害了投资者的利益，且该税率可由管理员随时修改。
 
+### 2.5 [High] 先除后乘导致的精度丢失
+- **位置**：[yplusSwap.sol:L98-100](file:///Users/yanyanzhenni/区块链/solidity/BSC链/32_诺亚/src/yplusSwap.sol#L98-L100)
+- **代码**：
+  ```solidity
+  uint256 priceInXPlus = (xplusPoolBalance * 1e18) / circulatingSupply;
+  return (priceInXPlus * getXPlusPrice()) / 1e18;
+  ```
+- **风险**：在 `circulatingSupply` 较大时，第一步除法会导致严重的精度丢失。若结果被截断为 0，则 YPLUS 价格归零，攻击者可免费购买。
+- **修复建议**：修改为 `(xplusPoolBalance * getXPlusPrice()) / circulatingSupply`，确保先乘后除。
 ---
 
 ## 3. 专项审计：分类检查清单
